@@ -6,7 +6,7 @@ use egui::*;
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1200.0, 800.0])
+            .with_inner_size([1640.0, 1100.0])
             .with_title("Budgetting"),
         ..Default::default()
     };
@@ -442,10 +442,84 @@ impl eframe::App for Budgetting {
             ui.add_space(8.0);
             ui.separator();
             ui.add_space(8.0);
+            
             ui.columns(2, |mut cols| {
                 let left = &mut cols[0];
                 left.heading("Comming");
+                left.add_space(8.0);
 
+                // Per-category totals and simple bar graph
+                let categories: [(ExpenceCategory, &str); 12] = [
+                    (ExpenceCategory::Housing, "Housing"),
+                    (ExpenceCategory::Transportation, "Transportation"),
+                    (ExpenceCategory::Groceries, "Groceries"),
+                    (ExpenceCategory::Healthcare, "Healthcare"),
+                    (ExpenceCategory::PersonalCare, "Personal Care"),
+                    (ExpenceCategory::DiningOut, "Dining Out"),
+                    (ExpenceCategory::Entertainment, "Entertainment"),
+                    (ExpenceCategory::Shopping, "Shopping"),
+                    (ExpenceCategory::Savings, "Savings"),
+                    (ExpenceCategory::DebtPayments, "Debt Payments"),
+                    (ExpenceCategory::Utilities, "Utilities"),
+                    (ExpenceCategory::Other, "Other"),
+                ];
+
+                let mut totals: Vec<f32> = vec![0.0; categories.len()];
+                for item in &self.cost_items {
+                    let idx = match item.cost_category {
+                        ExpenceCategory::Housing => 0,
+                        ExpenceCategory::Transportation => 1,
+                        ExpenceCategory::Groceries => 2,
+                        ExpenceCategory::Healthcare => 3,
+                        ExpenceCategory::PersonalCare => 4,
+                        ExpenceCategory::DiningOut => 5,
+                        ExpenceCategory::Entertainment => 6,
+                        ExpenceCategory::Shopping => 7,
+                        ExpenceCategory::Savings => 8,
+                        ExpenceCategory::DebtPayments => 9,
+                        ExpenceCategory::Utilities => 10,
+                        ExpenceCategory::Other => 11,
+                    };
+                    totals[idx] += item.actual_cost;
+                }
+
+                let max_total = totals
+                    .iter()
+                    .copied()
+                    .fold(0.0_f32, f32::max)
+                    .max(1.0);
+
+                for (i, (_cat, label)) in categories.iter().enumerate() {
+                    let total = totals[i];
+
+                    left.horizontal(|ui| {
+                        ui.label(RichText::new(*label).strong());
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            ui.label(format!("${:.2}", total));
+                        });
+                    });
+
+                    let available_width = left.available_width();
+                    let bar_height = 14.0;
+                    let (rect, _resp) = left.allocate_exact_size(vec2(available_width, bar_height), Sense::hover());
+                    let painter = left.painter();
+
+                    // Background bar
+                    painter.rect_filled(rect, 3.0, Color32::from_gray(230));
+
+                    // Filled portion
+                    let frac = (total / max_total).clamp(0.0, 1.0);
+                    let filled_width = rect.width() * frac;
+                    let filled_rect = Rect {
+                        min: rect.min,
+                        max: pos2(rect.min.x + filled_width, rect.max.y),
+                    };
+                    painter.rect_filled(filled_rect, 3.0, Color32::from_rgb(100, 170, 255));
+
+                    left.add_space(8.0);
+                }
+
+                /// pi chart
                 let right = &mut cols[1];
                 right.label("Actual incom used");
 
