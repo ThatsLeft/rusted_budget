@@ -1,16 +1,17 @@
-mod components;
+mod ui;
+mod models;
 
 use std::vec;
 
 use eframe::egui::{self};
 use egui::*;
 
-use crate::components::quick_add::QuickAdd;
+use crate::{models::{cost_item::{CostCycle, CostItem, ExpenceCategory}, income_item::{IncomeCategory, IncomeItem}}, ui::components::quick_add::QuickAdd};
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1280.0, 1000.0])
+            .with_inner_size([1920.0, 1200.0])
             .with_title("Budgetting"),
         ..Default::default()
     };
@@ -30,140 +31,68 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CostCycle {
-    Daily,
-    Weekly,
-    Monthly,
-    Yearly,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ExpenceCategory {
-    Housing,
-    Transportation,
-    Groceries,
-    Healthcare,
-    PersonalCare,
-    DiningOut,
-    Entertainment,
-    Shopping,
-    Savings,
-    DebtPayments,
-    Utilities,
-    Insurance,
-    Other,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum IncomeCategory {
-    Salary,
-    Freelance,
-    Investment,
-    SideHustle,
-    Bonus,
-    Gift,
-    Other,
-}
-
-#[derive(Debug, Clone)]
-struct IncomeItem {
-    source: String,
-    category: IncomeCategory,
-    amount: f32,
-    income_cycle: CostCycle,
-    tags: Option<Vec<String>>,
-}
-
-impl Default for IncomeItem {
-    fn default() -> Self {
-        Self {
-            source: String::new(),
-            category: IncomeCategory::Salary,
-            amount: 0.0,
-            income_cycle: CostCycle::Monthly,
-            tags: None,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-struct CostItem {
-    what: String,
-    cost: f32,
-    cost_cycle: CostCycle,
-    cost_category: ExpenceCategory,
-    tags: Option<Vec<String>>,
-    new_tag_input: String,
-}
-
-impl Default for CostItem {
-    fn default() -> Self {
-        Self {
-            what: String::new(),
-            cost: 0.0,
-            cost_cycle: CostCycle::Weekly,
-            cost_category: ExpenceCategory::Other,
-            tags: None,
-            new_tag_input: String::new(),
-        }
-    }
+struct BudgetData {
+    cost_items: Vec<CostItem>,
+    incom_items: Vec<IncomeItem>,
 }
 
 struct Budgetting {
-    cost_items: Vec<CostItem>,
+    data: BudgetData,
+    // cost_items: Vec<CostItem>,
     show_menu: bool,
-    incom_items: Vec<IncomeItem>,
+    // incom_items: Vec<IncomeItem>,
     quick_add: QuickAdd,
 }
 
 impl Budgetting {
     fn new() -> Self {
         Self {
-            cost_items: vec![
-                CostItem {
-                    what: "Coffee".to_string(),
-                    cost: 4.50,
-                    cost_cycle: CostCycle::Daily,
-                    cost_category: ExpenceCategory::Other,
-                    tags: Some(vec!["food".to_string()]),
-                    new_tag_input: String::new(),
-                },
-                CostItem {
-                    what: "Lunch".to_string(),
-                    cost: 18.75,
-                    cost_cycle: CostCycle::Daily,
-                    cost_category: ExpenceCategory::Other,
-                    tags: Some(vec!["food".to_string()]),
-                    new_tag_input: String::new(),
-                },
-                CostItem {
-                    what: "Ruter månedskort".to_string(),
-                    cost: 12.00,
-                    cost_cycle: CostCycle::Monthly,
-                    cost_category: ExpenceCategory::Other,
-                    tags: Some(vec!["transportation".to_string()]),
-                    new_tag_input: String::new(),
-                },
-                CostItem {
-                    what: "Books".to_string(),
-                    cost: 22.99,
-                    cost_cycle: CostCycle::Daily,
-                    cost_category: ExpenceCategory::Other,
-                    tags: Some(vec!["hobby".to_string()]),
-                    new_tag_input: String::new(),
-                },
-            ],
+            data: BudgetData { 
+                cost_items: vec![
+                    CostItem {
+                        what: "Coffee".to_string(),
+                        cost: 4.50,
+                        cost_cycle: CostCycle::Daily,
+                        cost_category: ExpenceCategory::Other,
+                        tags: Some(vec!["food".to_string()]),
+                        new_tag_input: String::new(),
+                    },
+                    CostItem {
+                        what: "Lunch".to_string(),
+                        cost: 18.75,
+                        cost_cycle: CostCycle::Daily,
+                        cost_category: ExpenceCategory::Other,
+                        tags: Some(vec!["food".to_string()]),
+                        new_tag_input: String::new(),
+                    },
+                    CostItem {
+                        what: "Ruter månedskort".to_string(),
+                        cost: 12.00,
+                        cost_cycle: CostCycle::Monthly,
+                        cost_category: ExpenceCategory::Other,
+                        tags: Some(vec!["transportation".to_string()]),
+                        new_tag_input: String::new(),
+                    },
+                    CostItem {
+                        what: "Books".to_string(),
+                        cost: 22.99,
+                        cost_cycle: CostCycle::Daily,
+                        cost_category: ExpenceCategory::Other,
+                        tags: Some(vec!["hobby".to_string()]),
+                        new_tag_input: String::new(),
+                    },
+                ],
+                incom_items: vec![
+                    IncomeItem { 
+                        source: "Forte".to_string(), 
+                        category: IncomeCategory::Salary, 
+                        amount: 50586.67, 
+                        income_cycle: CostCycle::Monthly,
+                        tags: None
+                    },
+                ]
+            },
             show_menu: true,
-            incom_items: vec![
-                IncomeItem { 
-                    source: "Forte".to_string(), 
-                    category: IncomeCategory::Salary, 
-                    amount: 50586.67, 
-                    income_cycle: CostCycle::Monthly,
-                    tags: None
-                },
-            ],
             quick_add: QuickAdd::new(),
         }
     }
@@ -202,11 +131,11 @@ impl eframe::App for Budgetting {
 
             // Buttons
             ui.horizontal(|ui| {
-                ui.add_space(20.0);
+                ui.add_space(10.0);
                 
                 // Buttons
                 if ui.small_button("Add Daily Cost").clicked() {
-                    self.cost_items.push(CostItem {
+                    self.data.cost_items.push(CostItem {
                         what: "New Item".to_string(),
                         cost: 0.0,
                         cost_cycle: CostCycle::Daily,
@@ -217,7 +146,7 @@ impl eframe::App for Budgetting {
                 }
 
                 if ui.small_button("Add Weekly Cost").clicked() {
-                    self.cost_items.push(CostItem {
+                    self.data.cost_items.push(CostItem {
                         what: "New Item".to_string(),
                         cost: 0.0,
                         cost_cycle: CostCycle::Weekly,
@@ -228,7 +157,7 @@ impl eframe::App for Budgetting {
                 }
 
                 if ui.small_button("Add Monthly Cost").clicked() {
-                    self.cost_items.push(CostItem {
+                    self.data.cost_items.push(CostItem {
                         what: "New Item".to_string(),
                         cost: 0.0,
                         cost_cycle: CostCycle::Monthly,
@@ -239,7 +168,7 @@ impl eframe::App for Budgetting {
                 }
 
                 if ui.small_button("Add Yealy Cost").clicked() {
-                    self.cost_items.push(CostItem {
+                    self.data.cost_items.push(CostItem {
                         what: "New Item".to_string(),
                         cost: 0.0,
                         cost_cycle: CostCycle::Yearly,
@@ -254,10 +183,10 @@ impl eframe::App for Budgetting {
 
             // Quick add
             if let Some(new_item) = self.quick_add.show(ui) {
-                self.cost_items.push(new_item);
+                self.data.cost_items.push(new_item);
             }
 
-            ui.add_space(20.0);
+            ui.add_space(10.0);
             // Top half of central section
             {
                 // Create the table
@@ -271,7 +200,7 @@ impl eframe::App for Budgetting {
                     Layout::top_down(Align::Min),
                     |ui| {
                         ScrollArea::vertical()
-                            .max_height(300.0)
+                            .max_height(250.0)
                             .auto_shrink([false, true])
                             .show(ui, |ui| {
                                 TableBuilder::new(ui)
@@ -307,7 +236,7 @@ impl eframe::App for Budgetting {
                                     .body(|mut body| {
                                         let mut items_to_delete = Vec::new();
 
-                                        for (item_index, row) in self.cost_items.iter_mut().enumerate() {
+                                        for (item_index, row) in self.data.cost_items.iter_mut().enumerate() {
                                             body.row(55.0, |mut row_ui| {
                                                 row_ui.col(|ui_left| {
                                                     if ui_left.small_button("×").on_hover_text("Delete item").clicked() {
@@ -443,7 +372,7 @@ impl eframe::App for Budgetting {
                                         }
 
                                         for &index in items_to_delete.iter().rev() {
-                                            self.cost_items.remove(index);
+                                            self.data.cost_items.remove(index);
                                         }
                                     }
                                 );
@@ -458,9 +387,9 @@ impl eframe::App for Budgetting {
                     ui.add_space(40.0);
                     ui.strong("Total:");
                     ui.add_space(45.0);
-                    // let total_actual: f32 = self.cost_items.iter().map(|item| item.cost).sum();
+                    // let total_actual: f32 = self.data.cost_items.iter().map(|item| item.cost).sum();
                     let mut total_actual: f32 = 0.0;
-                    for item in self.cost_items.iter(){
+                    for item in self.data.cost_items.iter(){
                         match item.cost_cycle {
                             CostCycle::Daily => {
                                 let cost = item.cost * 30.44; // Average days per month
@@ -487,11 +416,16 @@ impl eframe::App for Budgetting {
             // Bottom section: two columns (left header, right pie)
             ui.add_space(8.0);
             ui.separator();
-            ui.add_space(8.0);
+            ui.add_space(16.0);
             
+            ui.horizontal(|ui| {
+                ui.heading("Summary by month!");
+            });
+            ui.add_space(8.0);
+
             ui.columns(2, |mut cols| {
                 let left = &mut cols[0];
-                left.heading("Summary");
+                left.heading("Expences");
                 left.add_space(8.0);
 
                 ScrollArea::vertical()
@@ -520,7 +454,7 @@ impl eframe::App for Budgetting {
                         ];
 
                         let mut totals: Vec<f32> = vec![0.0; categories.len()];
-                        for item in &self.cost_items {
+                        for item in &self.data.cost_items {
                             let monthly_cost = match item.cost_cycle {
                                 CostCycle::Daily => item.cost * 30.44,
                                 CostCycle::Weekly => item.cost * 4.348,
@@ -610,7 +544,7 @@ impl eframe::App for Budgetting {
                 right.indent("pie_indent", |right| {
                     // fraction used
                     let mut total_monthly_cost: f32 = 0.0;
-                    for item in &self.cost_items {
+                    for item in &self.data.cost_items {
                         match item.cost_cycle {
                             CostCycle::Daily => {
                                 total_monthly_cost += item.cost * 30.44;
@@ -627,7 +561,7 @@ impl eframe::App for Budgetting {
                         }
                     }
                     
-                    let total_incom: f32 = self.incom_items.iter().map(|i|i.amount).sum();
+                    let total_incom: f32 = self.data.incom_items.iter().map(|i|i.amount).sum();
                     let income = total_incom.max(0.0);
                     let frac = if income > 0.0 { total_monthly_cost / income } else { 0.0 };
                     let frac = frac.clamp(0.0, 1.0);
@@ -695,7 +629,7 @@ impl eframe::App for Budgetting {
                     ];
 
                     let mut totals: Vec<f32> = vec![0.0; categories.len()];
-                    for item in &self.cost_items {
+                    for item in &self.data.cost_items {
                         let monthly_cost = match item.cost_cycle {
                             CostCycle::Daily => item.cost * 30.44,
                             CostCycle::Weekly => item.cost * 4.348,

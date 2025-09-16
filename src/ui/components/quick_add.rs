@@ -1,5 +1,6 @@
 use eframe::egui::*;
-use crate::{CostItem, CostCycle, ExpenceCategory};
+
+use crate::models::cost_item::{CostCycle, CostItem, ExpenceCategory};
 
 pub struct QuickAdd {
     input: String,
