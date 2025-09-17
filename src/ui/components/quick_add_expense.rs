@@ -1,8 +1,8 @@
 use eframe::egui::*;
 
-use crate::models::cost_item::{CostCycle, CostItem, ExpenceCategory};
+use crate::{models::cost_item::{CostCycle, CostItem, ExpenceCategory}, AppEvent};
 
-pub struct QuickAdd {
+pub struct QuickAddExpense {
     input: String,
     show_category_suggestions: bool,
     show_cycle_suggestions: bool,
@@ -10,7 +10,7 @@ pub struct QuickAdd {
     filtered_cycles: Vec<(String, CostCycle)>,
 }
 
-impl Default for QuickAdd {
+impl Default for QuickAddExpense {
     fn default() -> Self {
         Self {
             input: String::new(),
@@ -22,14 +22,13 @@ impl Default for QuickAdd {
     }
 }
 
-impl QuickAdd {
+impl QuickAddExpense {
     pub fn new() -> Self {
         Self::default()
     }
 
-    // Returns Some(CostItem)
-    pub fn show(&mut self, ui: &mut Ui) -> Option<CostItem> {
-        let mut result = None;
+    pub fn show(&mut self, ui: &mut Ui) -> Vec<AppEvent> {
+        let mut events = Vec::new();
 
         // Define all categories and cycles
         let all_categories = vec![
@@ -60,21 +59,28 @@ impl QuickAdd {
         ];
 
         ui.horizontal(|ui| {
-            ui.add_space(20.0);
+            ui.add_space(10.0);
             
-            ui.label("Quick add:");
+            ui.label("Expense:");
             let response = ui.add_sized(
-                [300.0, 20.0],
+                [350.0, 20.0],
                 TextEdit::singleline(&mut self.input)
                     .hint_text("e.g. 'Coffee 5 \\daily @dining' or 'Rent 1200 @housing'")
             );
             
+            if ui.button("Add").clicked() {
+                if let Some(item) = self.parse_input() {
+                    events.push(AppEvent::AddCostItem(item));
+                    self.input.clear();
+                    self.show_category_suggestions = false;
+                    self.show_cycle_suggestions = false;
+                }
+            }
+
             // Check if we should show suggestions
-            let should_show_category_suggestions = self.input.contains('@') && 
-                self.input.split('@').last().unwrap_or("").len() >= 0;
+            let should_show_category_suggestions = self.input.contains('@'); // && self.input.split('@').last().unwrap_or("").len() >= 0;
             
-            let should_show_cycle_suggestions = self.input.contains('\\') && 
-                self.input.split('\\').last().unwrap_or("").len() >= 0;
+            let should_show_cycle_suggestions = self.input.contains('\\'); //&& self.input.split('\\').last().unwrap_or("").len() >= 0;
             
             if should_show_category_suggestions {
                 // Get the text after the last @
@@ -112,7 +118,7 @@ impl QuickAdd {
             if response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
                 if !self.input.trim().is_empty() {
                     if let Some(item) = self.parse_input() {
-                        result = Some(item);
+                        events.push(AppEvent::AddCostItem(item));
                         self.input.clear();
                         self.show_category_suggestions = false;
                         self.show_cycle_suggestions = false;
@@ -187,7 +193,7 @@ impl QuickAdd {
             });
         }
 
-        result
+        events
     }
 
     fn parse_input(&self) -> Option<CostItem> {
@@ -314,12 +320,12 @@ impl QuickAdd {
         };
         
         Some(CostItem {
+            id: 0,
             what: final_name,
             cost: amount,
             cost_cycle: cycle,
             cost_category: category,
             tags: None,
-            new_tag_input: String::new(),
         })
     }
 }
