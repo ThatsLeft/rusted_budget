@@ -1,8 +1,11 @@
-use std::collections::HashMap;
 use eframe::egui::*;
 use egui_extras::{Column, TableBuilder};
+use std::collections::HashMap;
 
-use crate::{models::cost_item::{CostCycle, CostItem}, AppEvent};
+use crate::{
+    AppEvent,
+    models::cost_item::{CostCycle, CostItem},
+};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum SortColumn {
@@ -19,7 +22,7 @@ pub enum SortOrder {
 }
 
 pub struct CostItemTable {
-    tag_inputs: HashMap<usize, String>,
+    _tag_inputs: HashMap<usize, String>,
     sort_column: Option<SortColumn>,
     sort_order: SortOrder,
 }
@@ -27,13 +30,19 @@ pub struct CostItemTable {
 impl CostItemTable {
     pub fn new() -> Self {
         Self {
-            tag_inputs: HashMap::new(),
+            _tag_inputs: HashMap::new(),
             sort_column: None,
             sort_order: SortOrder::Ascending,
         }
     }
 
-    pub fn show(&mut self, ui: &mut Ui, items: &[CostItem], show_summary: bool, table_id: String) -> Vec<AppEvent> {
+    pub fn show(
+        &mut self,
+        ui: &mut Ui,
+        items: &[CostItem],
+        _show_summary: bool,
+        table_id: String,
+    ) -> Vec<AppEvent> {
         let mut events = Vec::new();
 
         ScrollArea::vertical()
@@ -45,18 +54,18 @@ impl CostItemTable {
                         .striped(true)
                         .resizable(true) // You can add this back now
                         .cell_layout(Layout::left_to_right(Align::Center))
-                        .column(Column::auto().at_least(40.0).at_most(50.0))   // Delete
+                        .column(Column::auto().at_least(40.0).at_most(50.0)) // Delete
                         .column(Column::auto().at_least(120.0).at_most(180.0)) // What
-                        .column(Column::auto().at_least(80.0).at_most(100.0))  // Cost
+                        .column(Column::auto().at_least(80.0).at_most(100.0)) // Cost
                         .column(Column::auto().at_least(120.0).at_most(150.0)) // Category
-                        .column(Column::auto().at_least(80.0).at_most(100.0))  // Cycle
+                        .column(Column::auto().at_least(80.0).at_most(100.0)) // Cycle
                         .column(Column::auto().at_least(160.0).at_most(260.0)) // Tags
                         .header(25.0, |mut header| {
                             self.render_headers(&mut header);
                         })
                         .body(|mut body| {
                             let sorted_items = self.get_sorted_items(items);
-                            for (original_index, item) in sorted_items {
+                            for (_, item) in sorted_items {
                                 self.render_row(&mut body, item, &mut events);
                             }
                         });
@@ -70,7 +79,7 @@ impl CostItemTable {
         header.col(|ui| {
             ui.strong("Del");
         });
-        
+
         header.col(|ui| {
             let mut text = "What".to_string();
             if matches!(self.sort_column, Some(SortColumn::What)) {
@@ -153,7 +162,7 @@ impl CostItemTable {
                     events.push(AppEvent::DeleteCostItem(item.id));
                 }
             });
-            
+
             // What field
             row.col(|ui| {
                 let mut temp_what = item.what.clone();
@@ -161,13 +170,13 @@ impl CostItemTable {
                 if response.changed() {
                     let mut updated_item = item.clone();
                     updated_item.what = temp_what;
-                    events.push(AppEvent::UpdateCostItem { 
-                        id: updated_item.id, 
-                        item: updated_item 
+                    events.push(AppEvent::UpdateCostItem {
+                        id: updated_item.id,
+                        item: updated_item,
                     });
                 }
             });
-            
+
             // Cost field
             row.col(|ui| {
                 let mut temp_cost = item.cost;
@@ -175,22 +184,22 @@ impl CostItemTable {
                 if response.changed() {
                     let mut updated_item = item.clone();
                     updated_item.cost = temp_cost;
-                    events.push(AppEvent::UpdateCostItem { 
-                        id: item.id, 
-                        item: updated_item 
+                    events.push(AppEvent::UpdateCostItem {
+                        id: item.id,
+                        item: updated_item,
                     });
                 }
             });
-            
+
             row.col(|ui| {
                 ui.label(format!("{:?}", item.cost_category));
             });
-            
+
             // Cycle column
             row.col(|ui| {
                 ui.label(format!("{:?}", item.cost_cycle));
             });
-            
+
             // Tags column
             row.col(|ui| {
                 if let Some(tags) = &item.tags {
@@ -202,13 +211,13 @@ impl CostItemTable {
         });
     }
 
-    fn render_summary(&self, ui: &mut Ui, items: &[CostItem]) {
+    fn _render_summary(&self, ui: &mut Ui, items: &[CostItem]) {
         ui.add_space(5.0);
         ui.horizontal(|ui| {
             ui.add_space(40.0);
             ui.strong("Monthly Total:");
             ui.add_space(20.0);
-            
+
             let mut total_monthly: f32 = 0.0;
             for item in items {
                 match item.cost_cycle {
@@ -220,7 +229,7 @@ impl CostItemTable {
             }
 
             ui.strong(format!("${:.2}", total_monthly));
-            
+
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 ui.label(format!("({} items)", items.len()));
             });
@@ -229,7 +238,7 @@ impl CostItemTable {
 
     fn get_sorted_items<'a>(&self, items: &'a [CostItem]) -> Vec<(usize, &'a CostItem)> {
         let mut indexed_items: Vec<(usize, &CostItem)> = items.iter().enumerate().collect();
-        
+
         if let Some(column) = self.sort_column {
             indexed_items.sort_by(|(_, a), (_, b)| {
                 let comparison = match column {
@@ -237,23 +246,25 @@ impl CostItemTable {
                     SortColumn::Cost => {
                         let a_monthly = self.to_monthly_cost(a);
                         let b_monthly = self.to_monthly_cost(b);
-                        a_monthly.partial_cmp(&b_monthly).unwrap_or(std::cmp::Ordering::Equal)
-                    },
+                        a_monthly
+                            .partial_cmp(&b_monthly)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    }
                     SortColumn::Category => {
                         format!("{:?}", a.cost_category).cmp(&format!("{:?}", b.cost_category))
-                    },
+                    }
                     SortColumn::Cycle => {
                         format!("{:?}", a.cost_cycle).cmp(&format!("{:?}", b.cost_cycle))
-                    },
+                    }
                 };
-                
+
                 match self.sort_order {
                     SortOrder::Ascending => comparison,
                     SortOrder::Descending => comparison.reverse(),
                 }
             });
         }
-        
+
         indexed_items
     }
 

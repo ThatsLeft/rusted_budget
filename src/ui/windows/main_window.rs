@@ -1,12 +1,14 @@
 use eframe::egui::{self, *};
 
-use crate::{ui::{components::quick_add_expense::QuickAddExpense, windows::{cost_item_window::CostItemWindow, home_window::HomeWindow}}, AppEvent, AppView, RustedBudgetAppState};
+use crate::{
+    AppEvent, AppView, RustedBudgetAppState,
+    ui::windows::{cost_item_window::CostItemWindow, home_window::HomeWindow},
+};
 
 pub struct MainWindow {
     show_menu: bool,
     home_window: HomeWindow,
     cost_item_window: CostItemWindow,
-    quick_add: QuickAddExpense,
     // Future: settings_window: SettingsWindow,
 }
 
@@ -16,7 +18,6 @@ impl MainWindow {
             show_menu: true,
             home_window: HomeWindow::new(),
             cost_item_window: CostItemWindow::new(),
-            quick_add: QuickAddExpense::new(),
         }
     }
 
@@ -44,35 +45,37 @@ impl MainWindow {
                 ui.vertical(|ui| {
                     ui.heading("Budget Tracker");
                     ui.separator();
-                    
+
                     ui.add_space(10.0);
-                    
-                    if ui.selectable_label(
-                        app_state.current_view == AppView::Home, 
-                        "🏠 Dashboard"
-                    ).clicked() {
+
+                    if ui
+                        .selectable_label(app_state.current_view == AppView::Home, "🏠 Dashboard")
+                        .clicked()
+                    {
                         events.push(AppEvent::ChangeView(AppView::Home));
                     }
-                    
-                    if ui.selectable_label(
-                        app_state.current_view == AppView::CostItems, 
-                        "📃 CostItem"
-                    ).clicked() {
+
+                    if ui
+                        .selectable_label(
+                            app_state.current_view == AppView::CostItems,
+                            "📃 CostItem",
+                        )
+                        .clicked()
+                    {
                         events.push(AppEvent::ChangeView(AppView::CostItems));
                     }
-                    
+
                     ui.add_space(ui.available_height() - 60.0);
-                    
+
                     ui.separator();
-                    if ui.selectable_label(
-                        app_state.current_view == AppView::Settings, 
-                        "⚙ Settings"
-                    ).clicked() {
+                    if ui
+                        .selectable_label(app_state.current_view == AppView::Settings, "⚙ Settings")
+                        .clicked()
+                    {
                         events.push(AppEvent::ChangeView(AppView::Settings));
                     }
                 });
-            }
-        );
+            });
 
         // Content area with header
         CentralPanel::default().show(ctx, |ui| {
@@ -83,9 +86,9 @@ impl MainWindow {
                     AppView::Home => "🏠 Dashboard",
                     AppView::CostItems => "CostItems",
                     AppView::Settings => "Settings",
-                };            
+                };
                 ui.heading(title);
-                
+
                 // Push button to the right
                 // ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 //     match app_state.current_view {
@@ -107,7 +110,7 @@ impl MainWindow {
                 //     }
                 // });
             });
-            
+
             ui.separator();
             ui.add_space(10.0);
 
@@ -116,17 +119,18 @@ impl MainWindow {
                 AppView::Home => {
                     let mut home_events = self.home_window.show(ui, &app_state.budget_data);
                     events.append(&mut home_events);
-                },
+                }
                 AppView::CostItems => {
-                    let mut cost_item_events = self.cost_item_window.show(ui, &app_state.budget_data);
+                    let mut cost_item_events =
+                        self.cost_item_window.show(ui, &app_state.budget_data);
                     events.append(&mut cost_item_events);
-                },
+                }
                 AppView::Settings => {
                     // Future: self.settings_window.show(ui, &mut app_state);
                     ui.centered_and_justified(|ui| {
                         ui.label("Settings view coming soon...");
                     });
-                },
+                }
             }
         });
 
