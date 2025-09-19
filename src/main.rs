@@ -1,17 +1,20 @@
-mod ui;
 mod models;
+mod ui;
 
 use std::collections::HashMap;
 
 use eframe::egui::{self};
 use egui::*;
 
-use crate::{models::{cost_item::CostItem, income_item::IncomeItem}, ui::windows::MainWindow};
+use crate::{
+    models::{cost_item::CostItem, income_item::IncomeItem},
+    ui::windows::MainWindow,
+};
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1280.0, 1000.0])
+            .with_inner_size([1440.0, 850.0])
             .with_title("Budgetting"),
         ..Default::default()
     };
@@ -35,20 +38,20 @@ fn main() -> eframe::Result<()> {
 pub enum AppEvent {
     // Navigation events
     ChangeView(AppView),
-    
+
     // Cost item events
     AddCostItem(CostItem),
     UpdateCostItem { id: u64, item: CostItem },
     DeleteCostItem(u64),
-    
+
     // Income item events
     AddIncomeItem(IncomeItem),
     UpdateIncomeItem { index: usize, item: IncomeItem },
     DeleteIncomeItem(usize),
-    
+
     // UI events
     ToggleMenu,
-    
+
     // Future events
     SaveData,
     LoadData,
@@ -56,7 +59,7 @@ pub enum AppEvent {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AppView {
-    Home, 
+    Home,
     CostItems,
     Settings,
 }
@@ -69,10 +72,10 @@ struct BudgetData {
 
 impl Default for BudgetData {
     fn default() -> Self {
-        Self { 
-            cost_items: HashMap::new(), 
+        Self {
+            cost_items: HashMap::new(),
             income_items: Vec::new(),
-            next_cost_id: 0, 
+            next_cost_id: 0,
         }
     }
 }
@@ -84,9 +87,9 @@ struct RustedBudgetAppState {
 
 impl Default for RustedBudgetAppState {
     fn default() -> Self {
-        Self { 
-            current_view: AppView::Home, 
-            budget_data: Default::default(), 
+        Self {
+            current_view: AppView::Home,
+            budget_data: Default::default(),
         }
     }
 }
@@ -96,46 +99,51 @@ impl RustedBudgetAppState {
         match event {
             AppEvent::ChangeView(app_view) => {
                 self.current_view = app_view;
-            },
+            }
             AppEvent::AddCostItem(mut cost_item) => {
                 cost_item.id = self.budget_data.next_cost_id;
-                self.budget_data.cost_items.insert(self.budget_data.next_cost_id, cost_item);
-                println!("Added cost item: {:?}", self.budget_data.cost_items.get_key_value(&self.budget_data.next_cost_id));
+                self.budget_data
+                    .cost_items
+                    .insert(self.budget_data.next_cost_id, cost_item);
+                println!(
+                    "Added cost item: {:?}",
+                    self.budget_data
+                        .cost_items
+                        .get_key_value(&self.budget_data.next_cost_id)
+                );
                 self.budget_data.next_cost_id += 1;
-            },
+            }
             AppEvent::UpdateCostItem { id, item } => {
                 if self.budget_data.cost_items.contains_key(&id) {
                     self.budget_data.cost_items.insert(id, item);
                 }
-            },
+            }
             AppEvent::DeleteCostItem(id) => {
                 if self.budget_data.cost_items.contains_key(&id) {
                     self.budget_data.cost_items.remove(&id);
                 }
-            },
+            }
             AppEvent::AddIncomeItem(income_item) => {
                 self.budget_data.income_items.push(income_item);
-            },
+            }
             AppEvent::UpdateIncomeItem { index, item } => {
                 if index < self.budget_data.income_items.len() {
                     self.budget_data.income_items[index] = item;
                 }
-            },
+            }
             AppEvent::DeleteIncomeItem(index) => {
                 if index < self.budget_data.income_items.len() {
                     let removed = self.budget_data.income_items.remove(index);
                     println!("Removed income item: {:?}", removed);
                 }
-            },
-            AppEvent::ToggleMenu => {
-                
-            },
+            }
+            AppEvent::ToggleMenu => {}
             AppEvent::SaveData => {
                 println!("Saving data...");
-            },
+            }
             AppEvent::LoadData => {
                 println!("Loading data...");
-            },
+            }
         }
     }
 }
@@ -147,8 +155,8 @@ struct RustedBudgetApp {
 
 impl RustedBudgetApp {
     fn new() -> Self {
-        Self { 
-            state: RustedBudgetAppState::default(), 
+        Self {
+            state: RustedBudgetAppState::default(),
             main_window: MainWindow::new(),
         }
     }
@@ -158,7 +166,7 @@ impl eframe::App for RustedBudgetApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Collect events from UI
         let events = self.main_window.show(ctx, &self.state);
-        
+
         // Process all events
         for event in events {
             self.state.handle_event(event);
